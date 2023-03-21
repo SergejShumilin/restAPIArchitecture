@@ -1,15 +1,13 @@
 package org.example.controller.maturityLevel_3;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
 import org.example.SubscriptionService;
 import org.example.UserService;
 import org.example.controller.ServiceController;
 import org.example.dto.SubscriptionRequestDto;
 import org.example.dto.SubscriptionResponseDto;
 import org.example.dto.UserResponseDto;
-import org.example.entity.Subscription;
+import org.example.exception.SubscriptionNotFoundException;
+import org.example.exception.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Link;
 import org.springframework.http.ResponseEntity;
@@ -30,13 +28,7 @@ public class ServiceControllerL3 implements ServiceController {
     @Autowired
     private UserService userService;
 
-    @GetMapping
-    @ApiOperation(value = "Gets list of subscriptions", response = List.class)
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "OK", response = List.class),
-            @ApiResponse(code = 204, message = "Subscriptions not found"),
-            @ApiResponse(code = 400, message = "Invalid ID supplied"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+    @Override
     public ResponseEntity<List<SubscriptionResponseDto>> getAllSubscription(){
         List<SubscriptionResponseDto> allSubscriptions = subscriptionService.getAllSubscription();
 
@@ -54,19 +46,13 @@ public class ServiceControllerL3 implements ServiceController {
             }
             response = ResponseEntity.ok(allSubscriptions);
         } else {
-            response = ResponseEntity.noContent().build();
+            throw new SubscriptionNotFoundException("Subscriptions not found");
         }
 
         return response;
     }
 
-    @GetMapping("/{id}")
-    @ApiOperation(value = "Gets subscription by id", response = Subscription.class)
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "OK", response = Subscription.class),
-            @ApiResponse(code = 204, message = "Subscription not found"),
-            @ApiResponse(code = 400, message = "Invalid ID supplied"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+    @Override
     public ResponseEntity<SubscriptionResponseDto> getSubscription(@PathVariable Long id){
         SubscriptionResponseDto subscriptionResponseDto = subscriptionService.getSubscription(id);
 
@@ -78,25 +64,21 @@ public class ServiceControllerL3 implements ServiceController {
             subscriptionResponseDto.add(selfLink);
             response = ResponseEntity.ok(subscriptionResponseDto);
         } else {
-            response = ResponseEntity.noContent().build();
+            throw new SubscriptionNotFoundException(String.format("Subscription with id = %s doesn't exists",
+                    id));
         }
 
         return response;
     }
 
-    @PostMapping
-    @ApiOperation(value = "Creates subscription", response = Subscription.class)
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "OK", response = Subscription.class),
-            @ApiResponse(code = 204, message = "Subscription not found"),
-            @ApiResponse(code = 400, message = "Provided Subscription details is incorrect"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+    @Override
     public ResponseEntity<?> createSubscription(@RequestBody SubscriptionRequestDto subscriptionRequestDto){
 
         UserResponseDto user = userService.getUser(subscriptionRequestDto.getUserId());
 
         if (user == null) {
-            return ResponseEntity.badRequest().body("User with id = " + subscriptionRequestDto.getUserId() + " doesn't exists");
+            throw new UserNotFoundException(String.format("User with id = %s doesn't exists",
+                    subscriptionRequestDto.getUserId()));
         }
 
         SubscriptionResponseDto subscriptionResponseDto = subscriptionService.createSubscription(subscriptionRequestDto);
@@ -115,13 +97,7 @@ public class ServiceControllerL3 implements ServiceController {
         return response;
     }
 
-    @PutMapping
-    @ApiOperation(value = "Updates subscription", response = Subscription.class)
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "OK", response = Subscription.class),
-            @ApiResponse(code = 204, message = "Subscription not found"),
-            @ApiResponse(code = 400, message = "Subscription details not provided"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+    @Override
     public ResponseEntity<?> updateSubscription(@RequestBody SubscriptionRequestDto subscriptionRequestDto) {
         if (subscriptionRequestDto.getId() == null || subscriptionRequestDto.getUserId() == null) {
             return ResponseEntity.badRequest().body("Subscription details not provided.");
@@ -130,7 +106,8 @@ public class ServiceControllerL3 implements ServiceController {
         UserResponseDto user = userService.getUser(subscriptionRequestDto.getUserId());
 
         if (user == null) {
-            return ResponseEntity.badRequest().body("User with id = " + subscriptionRequestDto.getUserId() + " doesn't exists");
+            throw new UserNotFoundException(String.format("User with id = %s doesn't exists",
+                    subscriptionRequestDto.getUserId()));
         }
 
         SubscriptionResponseDto subscriptionResponseDto = subscriptionService.updateSubscription(subscriptionRequestDto);
@@ -143,28 +120,24 @@ public class ServiceControllerL3 implements ServiceController {
             subscriptionResponseDto.add(selfLink);
             response = ResponseEntity.ok(subscriptionResponseDto);
         } else {
-            response = ResponseEntity.noContent().build();
+            throw new SubscriptionNotFoundException(String.format("Subscription with id = %s doesn't exists",
+                    subscriptionRequestDto.getId()));
         }
 
         return response;
 
     }
 
-    @DeleteMapping("/{id}")
-    @ApiOperation(value = "Deletes subscription by id", response = Long.class)
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "OK", response = Long.class),
-            @ApiResponse(code = 204, message = "Subscription not found"),
-            @ApiResponse(code = 400, message = "Invalid ID supplied"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+    @Override
     public ResponseEntity<?> deleteSubscription(@PathVariable Long id){
 
         Long subscriptionId = subscriptionService.deleteSubscription(id);
 
         if (subscriptionId == null){
-            return ResponseEntity.noContent().build();
+            throw new SubscriptionNotFoundException(String.format("Subscription with id = %s doesn't exists",
+                    id));
         }
 
-        return ResponseEntity.ok("Subscription with id = " + id + " was deleted");
+        return ResponseEntity.ok(String.format("Subscription with id = %s was deleted", id));
     }
 }

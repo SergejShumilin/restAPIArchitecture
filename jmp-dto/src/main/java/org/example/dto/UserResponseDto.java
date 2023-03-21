@@ -1,6 +1,5 @@
 package org.example.dto;
 
-import org.example.entity.User;
 import org.springframework.hateoas.RepresentationModel;
 
 public class UserResponseDto extends RepresentationModel<UserResponseDto> {

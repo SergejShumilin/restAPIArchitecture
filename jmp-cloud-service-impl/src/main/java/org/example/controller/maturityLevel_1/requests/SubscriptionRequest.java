@@ -3,6 +3,7 @@ package org.example.controller.maturityLevel_1.requests;
 import org.example.dto.SubscriptionRequestDto;
 import org.example.entity.Action;
 
+
 public class SubscriptionRequest {
     private Action action;
     private SubscriptionRequestDto requestDto;

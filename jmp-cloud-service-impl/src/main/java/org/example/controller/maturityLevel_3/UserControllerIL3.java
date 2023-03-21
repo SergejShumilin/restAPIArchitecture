@@ -1,13 +1,10 @@
 package org.example.controller.maturityLevel_3;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
 import org.example.UserService;
 import org.example.controller.UserController;
 import org.example.dto.UserRequestDto;
 import org.example.dto.UserResponseDto;
-import org.example.entity.User;
+import org.example.exception.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Link;
 import org.springframework.http.ResponseEntity;
@@ -26,13 +23,7 @@ public class UserControllerIL3 implements UserController {
     @Autowired
     private UserService service;
 
-    @GetMapping
-    @ApiOperation(value = "Gets list of users", response = List.class)
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "OK", response = List.class),
-            @ApiResponse(code = 204, message = "Users not found"),
-            @ApiResponse(code = 400, message = "Invalid ID supplied"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+    @Override
     public ResponseEntity<List<UserResponseDto>> getAllUser( ) {
         List<UserResponseDto> allUser = service.getAllUser();
 
@@ -46,19 +37,13 @@ public class UserControllerIL3 implements UserController {
             }
             response = ResponseEntity.ok(allUser);
         } else {
-            response = ResponseEntity.noContent().build();
+            throw new UserNotFoundException("Users not found");
         }
 
         return response;
     }
 
-    @GetMapping("/{id}")
-    @ApiOperation(value = "Gets user by id", response = User.class)
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "OK", response = User.class),
-            @ApiResponse(code = 204, message = "User not found"),
-            @ApiResponse(code = 400, message = "Invalid ID supplied"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+    @Override
     public ResponseEntity<UserResponseDto>  getUser(@PathVariable Long id) {
         UserResponseDto userResponseDto = service.getUser(id);
         ResponseEntity<UserResponseDto> response;
@@ -69,19 +54,14 @@ public class UserControllerIL3 implements UserController {
             userResponseDto.add(selfLink);
             response = ResponseEntity.ok(userResponseDto);
         } else {
-            response = ResponseEntity.noContent().build();
+            throw new UserNotFoundException(String.format("User with id = %s doesn't exists",
+                    id));
         }
 
         return response;
     }
 
-    @PostMapping
-    @ApiOperation(value = "Creates user", response = User.class)
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "OK", response = User.class),
-            @ApiResponse(code = 204, message = "User not found"),
-            @ApiResponse(code = 400, message = "Provided user details is incorrect"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+    @Override
     public ResponseEntity<UserResponseDto> createUser(@RequestBody UserRequestDto userRequestDto){
         UserResponseDto userResponseDto = service.createUser(userRequestDto);
         ResponseEntity<UserResponseDto> response;
@@ -98,13 +78,7 @@ public class UserControllerIL3 implements UserController {
         return response;
     }
 
-    @PutMapping
-    @ApiOperation(value = "Updates user", response = User.class)
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "OK", response = User.class),
-            @ApiResponse(code = 204, message = "User not found"),
-            @ApiResponse(code = 400, message = "User details not provided"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+    @Override
     public ResponseEntity<?> updateUser(@RequestBody UserRequestDto userRequestDto) {
         ResponseEntity<?> response;
 
@@ -119,27 +93,23 @@ public class UserControllerIL3 implements UserController {
                 userResponseDto.add(selfLink);
                 response = ResponseEntity.ok(userResponseDto);
             } else {
-                response = ResponseEntity.noContent().build();
+                throw new UserNotFoundException(String.format("User with id = %s doesn't exists",
+                        userRequestDto.getId()));
             }
         }
 
         return response;
     }
 
-    @DeleteMapping("/{id}")
-    @ApiOperation(value = "Deletes user by id", response = Long.class)
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "OK", response = Long.class),
-            @ApiResponse(code = 204, message = "User not found"),
-            @ApiResponse(code = 400, message = "Invalid ID supplied"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+    @Override
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         Long deleteUser = service.deleteUser(id);
 
         if (deleteUser == null){
-            return ResponseEntity.noContent().build();
+            throw new UserNotFoundException(String.format("User with id = %s doesn't exists",
+                    id));
         } else {
-            return ResponseEntity.ok("User with id = " + id + " was deleted");
+            return ResponseEntity.ok(String.format("User with id = %s was deleted", id));
         }
     }
 }

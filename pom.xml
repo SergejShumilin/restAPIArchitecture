@@ -4,8 +4,14 @@
 
   <groupId>org.example</groupId>
   <artifactId>restAPIArchitecture</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>${revision}</version>
   <packaging>pom</packaging>
+
+  <properties>
+    <revision>1.0-SNAPSHOT</revision>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
+  </properties>
 
   <modules>
     <module>jmp-dto</module>
@@ -13,10 +19,6 @@
     <module>jmp-cloud-service-impl</module>
     <module>jmp-service-rest</module>
   </modules>
-  <properties>
-    <maven.compiler.source>17</maven.compiler.source>
-    <maven.compiler.target>17</maven.compiler.target>
-  </properties>
 
   <dependencyManagement>
     <dependencies>
@@ -49,5 +51,4 @@
       <version>2.1.214</version>
     </dependency>
   </dependencies>
-
 </project>
